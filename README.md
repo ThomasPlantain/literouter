@@ -17,5 +17,7 @@ python main.py
 
 ## Dasboard
 
-> To 
+> To view the token consuption
+
+![Dashboard](./assets/literouter-dashboard.png)
 
