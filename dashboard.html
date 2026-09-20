@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LiteRouter | Token usage</title>
+  <style>
+    :root {
+      --ink: #17231f;
+      --muted: #69756e;
+      --line: #dbe3dc;
+      --paper: #f5f7f2;
+      --panel: #ffffff;
+      --mint: #b8e7cf;
+      --mint-strong: #23815e;
+      --coral: #e9785e;
+      --shadow: 0 18px 45px rgba(32, 61, 46, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+    .shell { max-width: 1180px; margin: 0 auto; padding: 34px 28px 56px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 62px; }
+    .brand { display: flex; align-items: center; gap: 12px; font: 700 14px/1.2 Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    .brand-mark { width: 30px; height: 30px; display: grid; place-items: center; color: var(--ink); background: var(--mint); border-radius: 50%; font: 700 16px Georgia, serif; }
+    .refresh { border: 1px solid var(--line); border-radius: 5px; padding: 10px 14px; color: var(--ink); background: var(--panel); cursor: pointer; font: 700 12px Arial, sans-serif; }
+    .refresh:hover { border-color: var(--mint-strong); color: var(--mint-strong); }
+    .eyebrow { margin: 0 0 10px; color: var(--mint-strong); font: 700 12px Arial, sans-serif; letter-spacing: .14em; text-transform: uppercase; }
+    h1 { max-width: 700px; margin: 0; font-size: clamp(42px, 6vw, 74px); font-weight: 400; line-height: .98; letter-spacing: -.03em; }
+    .intro { max-width: 540px; margin: 22px 0 42px; color: var(--muted); font: 16px/1.6 Arial, sans-serif; }
+    .stats { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+    .stat, .chart { border: 1px solid var(--line); background: var(--panel); box-shadow: var(--shadow); }
+    .stat { min-height: 156px; padding: 24px; }
+    .stat-label { margin-bottom: 24px; color: var(--muted); font: 700 11px Arial, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+    .stat-value { font-size: 42px; line-height: 1; }
+    .stat:first-child { background: var(--ink); color: #f3f5ed; border-color: var(--ink); }
+    .stat:first-child .stat-label { color: var(--mint); }
+    .chart { padding: 28px; }
+    .chart-heading { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 27px; }
+    h2 { margin: 0; font-size: 25px; font-weight: 400; }
+    .updated { color: var(--muted); font: 12px Arial, sans-serif; }
+    .rows { display: grid; gap: 22px; }
+    .row-head { display: flex; justify-content: space-between; gap: 20px; margin-bottom: 8px; font: 14px Arial, sans-serif; }
+    .row-head strong { font-weight: 700; }
+    .bar-track { height: 11px; overflow: hidden; background: #edf1eb; border-radius: 20px; }
+    .bar { height: 100%; min-width: 4px; background: var(--coral); border-radius: inherit; transition: width .5s ease; }
+    .empty, .error { padding: 34px 0 8px; color: var(--muted); font: 14px/1.5 Arial, sans-serif; }
+    .error { color: #a04432; }
+    footer { display: flex; justify-content: space-between; gap: 20px; margin-top: 24px; color: var(--muted); font: 12px Arial, sans-serif; }
+    code { padding: 3px 5px; background: #e8eee7; color: var(--ink); border-radius: 3px; }
+    @media (max-width: 700px) {
+      .shell { padding: 24px 18px 40px; }
+      .topbar { margin-bottom: 48px; }
+      .stats { grid-template-columns: 1fr; }
+      .stat { min-height: 125px; }
+      .stat-label { margin-bottom: 18px; }
+      .chart { padding: 22px 18px; }
+      .chart-heading { align-items: flex-start; flex-direction: column; gap: 8px; }
+      footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">L</span> LiteRouter</div>
+      <button class="refresh" id="refresh" type="button">Refresh data</button>
+    </header>
+
+    <section aria-labelledby="page-title">
+      <p class="eyebrow">Operations / Usage</p>
+      <h1 id="page-title">Token consumption, at a glance.</h1>
+      <p class="intro">A live view of the tokens recorded by each language model routed through your local gateway.</p>
+    </section>
+
+    <section class="stats" aria-label="Usage summary">
+      <article class="stat"><div class="stat-label">Total tokens</div><div class="stat-value" id="total">—</div></article>
+      <article class="stat"><div class="stat-label">Active models</div><div class="stat-value" id="models">—</div></article>
+      <article class="stat"><div class="stat-label">Top consumer</div><div class="stat-value" id="top-model">—</div></article>
+    </section>
+
+    <section class="chart" aria-labelledby="breakdown-title">
+      <div class="chart-heading">
+        <h2 id="breakdown-title">Usage by model</h2>
+        <span class="updated" id="updated">Loading usage data...</span>
+      </div>
+      <div class="rows" id="rows"></div>
+      <div class="empty" id="empty" hidden>No token usage has been recorded yet.</div>
+      <div class="error" id="error" hidden>Could not load token usage. Check that the API is running, then refresh.</div>
+    </section>
+
+    <footer><span>Source: <code>/api/token_usage</code></span><span id="status">Connecting...</span></footer>
+  </main>
+  <script>
+    const numberFormat = new Intl.NumberFormat('en-US');
+    const elements = {
+      total: document.querySelector('#total'), models: document.querySelector('#models'), topModel: document.querySelector('#top-model'),
+      rows: document.querySelector('#rows'), empty: document.querySelector('#empty'), error: document.querySelector('#error'),
+      updated: document.querySelector('#updated'), status: document.querySelector('#status')
+    };
+
+    function render(data) {
+      const usage = [...data].sort((a, b) => b.total_tokens - a.total_tokens);
+      const total = usage.reduce((sum, item) => sum + item.total_tokens, 0);
+      const max = usage[0]?.total_tokens || 1;
+      elements.total.textContent = numberFormat.format(total);
+      elements.models.textContent = numberFormat.format(usage.length);
+      elements.topModel.textContent = usage[0]?.llm_name || '—';
+      elements.rows.innerHTML = usage.map((item) => `
+        <div class="usage-row">
+          <div class="row-head"><strong>${escapeHtml(item.llm_name)}</strong><span>${numberFormat.format(item.total_tokens)} tokens</span></div>
+          <div class="bar-track"><div class="bar" style="width: ${(item.total_tokens / max) * 100}%"></div></div>
+        </div>`).join('');
+      elements.empty.hidden = usage.length > 0;
+      elements.error.hidden = true;
+      elements.updated.textContent = `Updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      elements.status.textContent = 'Live';
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+    }
+
+    async function loadUsage() {
+      elements.status.textContent = 'Refreshing...';
+      try {
+        const response = await fetch('/api/token_usage', { headers: { Accept: 'application/json' } });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        render(await response.json());
+      } catch (error) {
+        elements.error.hidden = false;
+        elements.empty.hidden = true;
+        elements.rows.innerHTML = '';
+        elements.updated.textContent = 'Update failed';
+        elements.status.textContent = 'Offline';
+      }
+    }
+
+    document.querySelector('#refresh').addEventListener('click', loadUsage);
+    loadUsage();
+  </script>
+</body>
+</html>
